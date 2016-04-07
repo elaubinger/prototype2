@@ -49,13 +49,31 @@ var enemyfirefx;
 var hitfx;
 var explodefx;
 
-var playerAPMax = 30;
-var playerAP = playerAPMax;
-var enemyAPMax = 10;
-var enemyAP = enemyAPMax;
+var maxRooms = 8;
+var minRooms = 3;
+
+var maxHeight = 100;
+var minHeight = 20;
+
+var maxWidth = 100;
+var minWidth = 20;
+
+var xMax = 600;
+var xMin = 0;
+
+var yMax = 600;
+var yMin = 0;
 
 var playerTurn = true;
 
+var Room = class Room{
+    constructor(height, width, x, y){
+        this.height = height;
+        this.width = width;
+        this.x = x;
+        this.y = y;
+    }
+}
 
 function create () {
 
@@ -63,30 +81,6 @@ function create () {
     
     //  Resize our game world to be a 2000 x 2000 square
     game.world.setBounds(-1000, -1000, 2000, 2000);
-
-    //  Our tiled scrolling background
-    land = game.add.tileSprite(0, 0, 1200, 800, 'earth');
-    land.fixedToCamera = true;
-
-    //  The base of our tank
-    this.tank = game.add.sprite(0, 0, 'tank2');
-    this.tank.anchor.setTo(0.5, 0.5);
-    
-    this.enemy = game.add.sprite(0, 0, 'tank1');
-    this.enemy.anchor.setTo(0.5, 0.5);
-    this.enemy.x += 100;
-    
-    this.enemyTwo = game.add.sprite(0, 0, 'tank1');
-    this.enemyTwo.anchor.setTo(0.5, 0.5);
-    this.enemyTwo.x += 200;
-    
-    upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
-    downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
-    leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
-    rightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-    
-    game.camera.follow(tank);
-    game.camera.focusOnXY(0, 0);
 
     music = game.add.audio('music');
     music.volume = 4.0;
@@ -98,78 +92,42 @@ function create () {
     enemyfirefx.volume = 0.5;
     hitfx = game.add.audio('hit');
     explodefx = game.add.audio('explode');
+    
+    rooms = game.rnd.integerInRange(minRooms, maxRooms+1);
+    roomArray = new Array(rooms);
+    
+    for(i = 0; i < rooms; i++){
+        roomArray[i] = new Room(
+            game.rnd.integerInRange(minHeight, maxHeight+1),
+            game.rnd.integerInRange(minWidth, maxWidth+1),
+            game.rnd.integerInRange(xMin, xMax+1),
+            game.rnd.integerInRange(yMin, yMax+1));
+    }
+    
+    var graphics = game.add.graphics(100, 100);
+    graphics.lineStyle(10, 0x0000FF, 1);
+    graphics.beginFill(0x0000FF, 1);
+    
+    for(i = 0; i < roomArray.length; i++){
+        graphics.drawRect(roomArray[i].x, roomArray[i].y, roomArray[i].height, roomArray[i].width);
+    }
+    
+    graphics.endFill();
+    graphics.moveTo(roomArray[0].x, roomArray[0].y);
+    
+    for(i = 1; i < roomArray.length; i++){
+        graphics.lineTo(roomArray[i].x,roomArray[i].y);
+        graphics.moveTo(roomArray[i].x,roomArray[i].y);
+    }
+    
 
 }
 
 function update () {
     
-    if(playerTurn){
-        if(upKey.isDown){
-            playerAP -= 1;
-            this.tank.y -= 10;
-        }
-        else if(downKey.isDown){
-            playerAP -= 1;
-            this.tank.y += 10;
-        }
-        else if(leftKey.isDown){
-            playerAP -= 1;
-            this.tank.x -= 10;
-        }
-        else if(rightKey.isDown){
-            playerAP -= 1;
-            this.tank.x += 10;
-        }
-        
-        if(playerAP <= 0){
-            playerTurn = false;
-            playerAP = playerAPMax;
-        }
-    }
-    else{
-        random = game.rnd.integerInRange(0,4);
-        if(random == 0){
-            enemyAP -= 1;
-            this.enemy.y += 20;
-        }
-        else if(random == 1){
-            enemyAP -= 1;
-            this.enemy.y -= 20;
-        }
-        else if(random == 2){
-            enemyAP -= 1;
-            this.enemy.x += 20;
-        }
-        else if(random == 3){
-            enemyAP -= 1;
-            this.enemy.x -= 20;
-        }
-        
-        randomTwo = game.rnd.integerInRange(0,4);
-        if(randomTwo == 0){
-            this.enemyTwo.y += 20;
-        }
-        else if(randomTwo == 1){
-            this.enemyTwo.y -= 20;
-        }
-        else if(randomTwo == 2){
-            this.enemyTwo.x += 20;
-        }
-        else if(randomTwo == 3){
-            this.enemyTwo.x -= 20;
-        }
-        
-        if(enemyAP <= 0){
-            playerTurn = true;
-            enemyAP = enemyAPMax;
-        }
-    }    
 }
 
 function render () {
-
-    game.debug.text('PlayerAP: ' + playerAP + ' / ' + playerAPMax, 32, 32);
-    game.debug.text('EnemyAP: ' + enemyAP + ' / ' + enemyAPMax, 32, 48);
-
+    
 }
 
